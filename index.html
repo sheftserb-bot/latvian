@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Latviešu treneris — тренажёр латышского</title>
+<meta name="theme-color" content="#8a6d1f">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/favicon.png">
+<!-- iOS standalone app -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Latviešu">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<style>
+  :root{
+    --ink:#23201a; --paper:#f3ead7; --paper2:# faf6ec;
+    --amber:#c9a227; --amber-d:#8a6d1f; --amber-dd:#6b5413;
+    --m:#3f6fa3; --m-bg:#e7f0f9; --m-br:#bcd3ec;
+    --f:#a6446e; --f-bg:#fbecf3; --f-br:#ecc6d8;
+    --line:#d8cbb0; --ok:#3f8a4d;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI",system-ui,Arial,sans-serif;color:var(--ink);
+    background:
+      radial-gradient(1200px 500px at 80% -10%, #f7efdd 0%, transparent 60%),
+      linear-gradient(180deg,#efe4cd 0%, #e9ddc2 100%);
+    min-height:100vh;}
+  header{padding:26px 20px 18px;text-align:center;}
+  header h1{margin:0;font-size:clamp(22px,4vw,32px);letter-spacing:.5px;
+    color:var(--amber-dd);
+    text-shadow:0 1px 0 #fff8;}
+  header p{margin:6px 0 0;color:#7a6d52;font-size:14px}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 16px 60px}
+
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin:14px 0 22px}
+  .tab{border:none;cursor:pointer;font-size:14.5px;font-weight:600;
+    padding:11px 20px;border-radius:11px 11px 0 0;
+    background:#e0d3b6;color:#6b5e44;transition:.15s;border:1px solid transparent;border-bottom:none}
+  .tab:hover{background:#e8dcc1}
+  .tab.active{background:var(--paper2);color:var(--amber-dd);
+    box-shadow:0 -2px 8px #0001;border-color:var(--line)}
+
+  .panel{display:none;background:var(--paper2);border:1px solid var(--line);
+    border-radius:4px 14px 14px 14px;padding:22px;box-shadow:0 8px 30px #0000001a}
+  .panel.active{display:block;animation:fade .25s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  h2{margin:0 0 4px;color:var(--amber-d);font-size:20px}
+  .sub{color:#7a6d52;font-size:13.5px;margin:0 0 16px}
+  h3{margin:22px 0 8px;font-size:16px;color:#34302a}
+
+  table{border-collapse:collapse;width:100%;margin:8px 0 6px;font-size:14px;background:#fff;
+    border-radius:9px;overflow:hidden;box-shadow:0 2px 8px #0000000d}
+  th,td{border:1px solid #e3dac4;padding:9px 12px;text-align:left;vertical-align:top}
+  th{background:var(--amber-d);color:#fff;font-weight:600;font-size:13.5px}
+  thead.sub2 th{background:var(--amber)}
+  tbody tr:nth-child(even) td{background:#faf5e8}
+  .lv{font-weight:700}
+  .end{color:#b3261e;font-weight:700}
+  .ru{color:#5a5346}
+  .m-row td:first-child{border-left:4px solid var(--m)}
+  .f-row td:first-child{border-left:4px solid var(--f)}
+
+  .legend{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0 4px}
+  .chip{flex:1;min-width:220px;border-radius:10px;padding:10px 14px;font-size:13.5px}
+  .chip.m{background:var(--m-bg);border:1px solid var(--m-br)}
+  .chip.f{background:var(--f-bg);border:1px solid var(--f-br)}
+  .chip b{display:block;margin-bottom:3px}
+  .note{font-style:italic;color:#6a6250;background:#fbfaf3;border-left:3px solid var(--amber);
+    padding:8px 12px;border-radius:0 7px 7px 0;margin:10px 0;font-size:13.5px}
+  .tip{background:#eef6ee;border-left:4px solid var(--ok);padding:9px 13px;border-radius:0 8px 8px 0;margin:10px 0;font-size:13.5px}
+
+  /* word builder */
+  .builder{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end;margin:10px 0 6px}
+  @media(max-width:640px){.builder{grid-template-columns:1fr}}
+  label{display:block;font-size:12.5px;color:#6b5e44;font-weight:600;margin-bottom:4px}
+  input,select{width:100%;padding:10px 12px;border:1px solid #cdbf9f;border-radius:9px;
+    font-size:14.5px;background:#fff;color:var(--ink)}
+  input:focus,select:focus{outline:none;border-color:var(--amber);box-shadow:0 0 0 3px #c9a22733}
+  .btn{cursor:pointer;border:none;border-radius:9px;padding:11px 18px;font-size:14px;font-weight:600;
+    background:var(--amber-d);color:#fff;transition:.15s;white-space:nowrap}
+  .btn:hover{background:var(--amber-dd)}
+  .btn.ghost{background:#e6dcc4;color:#6b5413}
+  .btn.ghost:hover{background:#ddd0b2}
+  .btn.mini{padding:6px 10px;font-size:12.5px;border-radius:7px}
+  .btn.danger{background:#b14a4a}
+  .btn.danger:hover{background:#933d3d}
+
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:14px 0 10px}
+  .search{flex:1;min-width:180px}
+  .count{font-size:13px;color:#7a6d52}
+
+  .empty{text-align:center;color:#8a7d62;padding:30px 10px;font-style:italic}
+  .declkey{display:inline-block;min-width:22px;height:22px;line-height:22px;text-align:center;
+    border-radius:6px;background:var(--amber);color:#fff;font-weight:700;font-size:12.5px}
+  .pill{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11.5px;font-weight:600}
+  .pill.m{background:var(--m-bg);color:var(--m);border:1px solid var(--m-br)}
+  .pill.f{background:var(--f-bg);color:var(--f);border:1px solid var(--f-br)}
+  .actions{white-space:nowrap}
+  .savednote{font-size:12px;color:var(--ok);height:16px;margin-top:6px}
+  .hintline{font-size:12.5px;color:#8a7d62;margin-top:6px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Latviešu treneris</h1>
+  <p>Тренажёр латышского · глагол <i>būt</i> · склонения · твой словарь</p>
+</header>
+
+<div class="wrap">
+  <div class="tabs">
+    <button class="tab active" data-tab="but">Глагол būt</button>
+    <button class="tab" data-tab="decl">Склонения</button>
+    <button class="tab" data-tab="dict">Мой словарь</button>
+  </div>
+
+  <!-- ============ TAB 1: BŪT ============ -->
+  <section class="panel active" id="but">
+    <h2>Глагол būt (быть) — три времени</h2>
+    <p class="sub">Самый важный глагол. В 3-м лице форма одна для «он / она / они»: ir · bija · būs.</p>
+    <table>
+      <thead>
+        <tr><th style="width:28%">Persona — лицо</th><th>Tagadne · настоящее</th><th>Pagātne · прошедшее</th><th>Nākotne · будущее</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>es — я</td><td class="lv">esmu</td><td class="lv">biju</td><td class="lv">būšu</td></tr>
+        <tr><td>tu — ты</td><td class="lv">esi</td><td class="lv">biji</td><td class="lv">būsi</td></tr>
+        <tr><td>viņš / viņa — он / она</td><td class="lv">ir</td><td class="lv">bija</td><td class="lv">būs</td></tr>
+        <tr><td>mēs — мы</td><td class="lv">esam</td><td class="lv">bijām</td><td class="lv">būsim</td></tr>
+        <tr><td>jūs — вы</td><td class="lv">esat</td><td class="lv">bijāt</td><td class="lv">būsiet</td></tr>
+        <tr><td>viņi / viņas — они</td><td class="lv">ir</td><td class="lv">bija</td><td class="lv">būs</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Отрицание — настоящее время</h3>
+    <table>
+      <thead><tr><th style="width:28%">Лицо</th><th>Būt — есть</th><th>Nebūt — не есть</th></tr></thead>
+      <tbody>
+        <tr><td>es</td><td class="lv">esmu</td><td class="lv">neesmu</td></tr>
+        <tr><td>tu</td><td class="lv">esi</td><td class="lv">neesi</td></tr>
+        <tr><td>mēs</td><td class="lv">esam</td><td class="lv">neesam</td></tr>
+        <tr><td>jūs</td><td class="lv">esat</td><td class="lv">neesat</td></tr>
+        <tr><td>viņš/viņa/viņi/viņas</td><td class="lv">ir</td><td class="lv">nav</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Примеры по временам</h3>
+    <table>
+      <tbody>
+        <tr><td class="lv">Es esmu skolā.</td><td class="ru">Я в школе (сейчас)</td></tr>
+        <tr><td class="lv">Es biju skolā.</td><td class="ru">Я был в школе (вчера)</td></tr>
+        <tr><td class="lv">Es būšu skolā.</td><td class="ru">Я буду в школе (завтра)</td></tr>
+        <tr><td class="lv">Mēs bijām mājās.</td><td class="ru">Мы были дома</td></tr>
+        <tr><td class="lv">Viņi būs parkā.</td><td class="ru">Они будут в парке</td></tr>
+        <tr><td class="lv">Viņa nav klasē.</td><td class="ru">Её нет в классе</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ============ TAB 2: DECLENSIONS ============ -->
+  <section class="panel" id="decl">
+    <h2>Склонения существительных</h2>
+    <p class="sub">6 групп. Склонение определяется по роду и окончанию начальной формы (Kas? — кто/что, ед. число).</p>
+
+    <div class="legend">
+      <div class="chip m"><b>Мужской род — склонения 1, 2, 3</b>окончания: -s/-š · -is · -us</div>
+      <div class="chip f"><b>Женский род — склонения 4, 5, 6</b>окончания: -a · -e · -s</div>
+    </div>
+
+    <h3>Как опознать склонение</h3>
+    <table>
+      <thead><tr><th>№</th><th>Род</th><th>Окончание</th><th>Пример</th><th>Мн. число</th><th>Перевод</th></tr></thead>
+      <tbody>
+        <tr class="m-row"><td><span class="declkey">1</span></td><td>муж.</td><td class="end">-s / -š</td><td>dēl<span class="end">s</span>, ceļ<span class="end">š</span></td><td>dēl<span class="end">i</span></td><td>сын, дорога</td></tr>
+        <tr class="m-row"><td><span class="declkey">2</span></td><td>муж.</td><td class="end">-is</td><td>brāl<span class="end">is</span></td><td>brāļ<span class="end">i</span></td><td>брат</td></tr>
+        <tr class="m-row"><td><span class="declkey">3</span></td><td>муж.</td><td class="end">-us</td><td>tirg<span class="end">us</span></td><td>tirg<span class="end">i</span></td><td>рынок</td></tr>
+        <tr class="f-row"><td><span class="declkey">4</span></td><td>жен.</td><td class="end">-a</td><td>mās<span class="end">a</span></td><td>mās<span class="end">as</span></td><td>сестра</td></tr>
+        <tr class="f-row"><td><span class="declkey">5</span></td><td>жен.</td><td class="end">-e</td><td>māt<span class="end">e</span></td><td>māt<span class="end">es</span></td><td>мать</td></tr>
+        <tr class="f-row"><td><span class="declkey">6</span></td><td>жен.</td><td class="end">-s</td><td>ziv<span class="end">s</span></td><td>ziv<span class="end">is</span></td><td>рыба</td></tr>
+      </tbody>
+    </table>
+    <div class="tip"><b>1-е vs 6-е.</b> Оба на -s. Разница в роде: 1-е мужской (dārz<b>s</b> — сад), 6-е женский (pil<b>s</b> — замок). Во мн.ч. 1-е даёт -i (dārzi), 6-е даёт -is (pilis).</div>
+
+    <h3>Падежные окончания — мужской род (ед. число)</h3>
+    <table>
+      <thead><tr><th>Падеж · вопрос</th><th>1 (zēns)</th><th>2 (brālis)</th><th>3 (medus)</th></tr></thead>
+      <tbody>
+        <tr><td>kas? — кто/что</td><td>zēn<span class="end">s</span></td><td>brāl<span class="end">is</span></td><td>med<span class="end">us</span></td></tr>
+        <tr><td>kā? — чей/чего</td><td>zēn<span class="end">a</span></td><td>brāļ<span class="end">a</span></td><td>med<span class="end">us</span></td></tr>
+        <tr><td>kam? — кому</td><td>zēn<span class="end">am</span></td><td>brāl<span class="end">im</span></td><td>med<span class="end">um</span></td></tr>
+        <tr><td>ko? — кого/что</td><td>zēn<span class="end">u</span></td><td>brāl<span class="end">i</span></td><td>med<span class="end">u</span></td></tr>
+        <tr><td>ar ko? — с кем/чем</td><td>ar zēn<span class="end">u</span></td><td>ar brāl<span class="end">i</span></td><td>ar med<span class="end">u</span></td></tr>
+        <tr><td>kur? — где</td><td>zēn<span class="end">ā</span></td><td>brāl<span class="end">ī</span></td><td>med<span class="end">ū</span></td></tr>
+      </tbody>
+    </table>
+
+    <h3>Падежные окончания — женский род (ед. число)</h3>
+    <table>
+      <thead><tr><th>Падеж · вопрос</th><th>4 (māsa)</th><th>5 (māte)</th><th>6 (nakts)</th></tr></thead>
+      <tbody>
+        <tr><td>kas? — кто/что</td><td>mās<span class="end">a</span></td><td>māt<span class="end">e</span></td><td>nakt<span class="end">s</span></td></tr>
+        <tr><td>kā? — чей/чего</td><td>mās<span class="end">as</span></td><td>māt<span class="end">es</span></td><td>nakt<span class="end">s</span></td></tr>
+        <tr><td>kam? — кому</td><td>mās<span class="end">ai</span></td><td>māt<span class="end">ei</span></td><td>nakt<span class="end">ij</span></td></tr>
+        <tr><td>ko? — кого/что</td><td>mās<span class="end">u</span></td><td>māt<span class="end">i</span></td><td>nakt<span class="end">i</span></td></tr>
+        <tr><td>ar ko? — с кем/чем</td><td>ar mās<span class="end">u</span></td><td>ar māt<span class="end">i</span></td><td>ar nakt<span class="end">i</span></td></tr>
+        <tr><td>kur? — где</td><td>mās<span class="end">ā</span></td><td>māt<span class="end">ē</span></td><td>nakt<span class="end">ī</span></td></tr>
+      </tbody>
+    </table>
+    <div class="note">Lokatīvs (kur? — где) работает без предлога: skolā = «в школе», окончание -ā само значит «в».</div>
+    <div class="note">Чередование согласных (līdzskaņu mija) во 2-м склонении: brāl<b>is</b> → brāļ<b>i</b> (l → ļ).</div>
+  </section>
+
+  <!-- ============ TAB 3: DICTIONARY ============ -->
+  <section class="panel" id="dict">
+    <h2>Мой словарь</h2>
+    <p class="sub">Добавляй свои слова: латышское слово и перевод. Можно отметить род и склонение. Всё сохраняется в этом файле на твоём устройстве.</p>
+
+    <div class="builder">
+      <div>
+        <label for="lvWord">Латышское слово</label>
+        <input id="lvWord" placeholder="напр. pagalms" autocomplete="off">
+      </div>
+      <div>
+        <label for="ruWord">Перевод (рус.)</label>
+        <input id="ruWord" placeholder="напр. двор" autocomplete="off">
+      </div>
+      <div>
+        <button class="btn" id="addBtn">Добавить</button>
+      </div>
+    </div>
+    <div class="builder" style="margin-top:0">
+      <div>
+        <label for="genSel">Род</label>
+        <select id="genSel">
+          <option value="">— не указан —</option>
+          <option value="m">мужской</option>
+          <option value="f">женский</option>
+        </select>
+      </div>
+      <div>
+        <label for="declSel">Склонение</label>
+        <select id="declSel">
+          <option value="">— авто / не указано —</option>
+          <option value="1">1 (-s/-š, муж.)</option>
+          <option value="2">2 (-is, муж.)</option>
+          <option value="3">3 (-us, муж.)</option>
+          <option value="4">4 (-a, жен.)</option>
+          <option value="5">5 (-e, жен.)</option>
+          <option value="6">6 (-s, жен.)</option>
+        </select>
+      </div>
+      <div><button class="btn ghost" id="autoBtn" title="Определить склонение по окончанию и роду">Определить склонение</button></div>
+    </div>
+    <div class="hintline" id="autoHint">Подсказка: введи слово и род, нажми «Определить склонение» — приложение угадает номер по окончанию.</div>
+    <div class="savednote" id="savedNote"></div>
+
+    <div class="toolbar">
+      <input class="search" id="searchBox" placeholder="Поиск по слову или переводу…">
+      <span class="count" id="count"></span>
+      <button class="btn ghost mini" id="exportBtn">Экспорт (CSV)</button>
+      <button class="btn danger mini" id="clearBtn">Очистить всё</button>
+    </div>
+
+    <table id="dictTable">
+      <thead><tr><th style="width:26%">Latviešu</th><th style="width:30%">Русский</th><th>Род</th><th>Скл.</th><th class="actions">Действия</th></tr></thead>
+      <tbody id="dictBody"></tbody>
+    </table>
+    <div class="empty" id="emptyState">Пока пусто. Добавь первое слово выше ↑</div>
+  </section>
+</div>
+
+<script>
+  // ---- tabs ----
+  const tabs=document.querySelectorAll('.tab'), panels=document.querySelectorAll('.panel');
+  tabs.forEach(t=>t.addEventListener('click',()=>{
+    tabs.forEach(x=>x.classList.remove('active'));
+    panels.forEach(p=>p.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById(t.dataset.tab).classList.add('active');
+  }));
+
+  // ---- storage helpers: localStorage (standalone) with window.storage + memory fallback ----
+  const KEY='lv_dict_v1';
+  let mem=null;
+  async function loadWords(){
+    try{ const ls=localStorage.getItem(KEY); if(ls!==null) return JSON.parse(ls); }catch(e){}
+    try{ if(window.storage){const r=await window.storage.get(KEY,false);return r&&r.value?JSON.parse(r.value):[];} }catch(e){}
+    return mem?JSON.parse(mem):[];
+  }
+  async function saveWords(arr){
+    const s=JSON.stringify(arr); mem=s;
+    try{ localStorage.setItem(KEY,s); }catch(e){}
+    try{ if(window.storage){await window.storage.set(KEY,s,false);} }catch(e){}
+  }
+
+  // ---- declension guesser ----
+  function guessDecl(word,gender){
+    const w=word.trim().toLowerCase();
+    if(!w) return '';
+    if(gender==='m'||gender===''){
+      if(w.endsWith('us')) return '3';
+      if(w.endsWith('is')) return '2';
+      if(w.endsWith('š')||w.endsWith('s')) { if(gender==='m') return '1'; }
+    }
+    if(gender==='f'||gender===''){
+      if(w.endsWith('a')) return '4';
+      if(w.endsWith('e')) return '5';
+      if(w.endsWith('s')&&gender==='f') return '6';
+    }
+    // ambiguous -s without gender
+    if(w.endsWith('s')||w.endsWith('š')) return '1?';
+    return '';
+  }
+
+  const lvWord=document.getElementById('lvWord'), ruWord=document.getElementById('ruWord'),
+        genSel=document.getElementById('genSel'), declSel=document.getElementById('declSel'),
+        body=document.getElementById('dictBody'), emptyState=document.getElementById('emptyState'),
+        count=document.getElementById('count'), searchBox=document.getElementById('searchBox'),
+        savedNote=document.getElementById('savedNote'), autoHint=document.getElementById('autoHint');
+
+  let words=[];
+
+  function flashSaved(msg){ savedNote.textContent=msg||'Сохранено ✓'; setTimeout(()=>savedNote.textContent='',1400); }
+
+  function render(){
+    const q=searchBox.value.trim().toLowerCase();
+    const list=words.filter(w=>!q || w.lv.toLowerCase().includes(q) || w.ru.toLowerCase().includes(q));
+    body.innerHTML='';
+    if(list.length===0){ emptyState.style.display='block'; }
+    else { emptyState.style.display='none'; }
+    list.forEach((w)=>{
+      const realIdx=words.indexOf(w);
+      const tr=document.createElement('tr');
+      const genPill=w.gen==='m'?'<span class="pill m">муж.</span>':w.gen==='f'?'<span class="pill f">жен.</span>':'<span style="color:#aaa">—</span>';
+      const declTxt=w.decl?('<span class="declkey">'+w.decl+'</span>'):'<span style="color:#aaa">—</span>';
+      tr.innerHTML='<td class="lv">'+esc(w.lv)+'</td><td class="ru">'+esc(w.ru)+'</td><td>'+genPill+'</td><td>'+declTxt+'</td>'+
+        '<td class="actions"><button class="btn ghost mini" data-edit="'+realIdx+'">✎</button> '+
+        '<button class="btn danger mini" data-del="'+realIdx+'">✕</button></td>';
+      body.appendChild(tr);
+    });
+    count.textContent=words.length+(words.length===1?' слово':(words.length>=2&&words.length<=4?' слова':' слов'));
+  }
+  function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+
+  async function add(){
+    const lv=lvWord.value.trim(), ru=ruWord.value.trim();
+    if(!lv||!ru){ flashSaved('Заполни оба поля'); return; }
+    let decl=declSel.value;
+    if(!decl){ const g=guessDecl(lv,genSel.value); decl=(g&&g!=='1?')?g:''; }
+    words.unshift({lv,ru,gen:genSel.value,decl});
+    await saveWords(words);
+    lvWord.value=''; ruWord.value=''; genSel.value=''; declSel.value='';
+    render(); flashSaved(); lvWord.focus();
+  }
+
+  document.getElementById('addBtn').addEventListener('click',add);
+  [lvWord,ruWord].forEach(el=>el.addEventListener('keydown',e=>{if(e.key==='Enter')add();}));
+
+  document.getElementById('autoBtn').addEventListener('click',()=>{
+    const g=guessDecl(lvWord.value,genSel.value);
+    if(g==='1?'){ autoHint.textContent='Слово на -s: укажи род. Мужской → 1-е, женский → 6-е склонение.'; }
+    else if(g){ declSel.value=g; autoHint.textContent='Определено: '+g+'-е склонение.'; }
+    else { autoHint.textContent='Не удалось определить — выбери склонение вручную.'; }
+  });
+
+  body.addEventListener('click',async e=>{
+    const del=e.target.getAttribute('data-del'), ed=e.target.getAttribute('data-edit');
+    if(del!==null&&del!==undefined&&e.target.hasAttribute('data-del')){
+      words.splice(+del,1); await saveWords(words); render(); flashSaved('Удалено');
+    }
+    if(ed!==null&&ed!==undefined&&e.target.hasAttribute('data-edit')){
+      const w=words[+ed]; lvWord.value=w.lv; ruWord.value=w.ru; genSel.value=w.gen||''; declSel.value=w.decl||'';
+      words.splice(+ed,1); await saveWords(words); render();
+      document.getElementById('dict').scrollIntoView({behavior:'smooth',block:'start'}); lvWord.focus();
+    }
+  });
+
+  searchBox.addEventListener('input',render);
+
+  document.getElementById('clearBtn').addEventListener('click',async()=>{
+    if(words.length&&confirm('Удалить все слова из словаря?')){ words=[]; await saveWords(words); render(); flashSaved('Очищено'); }
+  });
+
+  document.getElementById('exportBtn').addEventListener('click',()=>{
+    if(!words.length){ flashSaved('Словарь пуст'); return; }
+    const rows=[['Latviesu','Russian','Rod','Sklonenie']].concat(words.map(w=>[w.lv,w.ru,w.gen||'',w.decl||'']));
+    const csv=rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');
+    const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='latviesu_vardnica.csv'; a.click();
+  });
+
+  // seed a few example words on first run
+  (async function init(){
+    words=await loadWords();
+    if(words.length===0){
+      words=[
+        {lv:'pagalms',ru:'двор',gen:'m',decl:'1'},
+        {lv:'brālis',ru:'брат',gen:'m',decl:'2'},
+        {lv:'māte',ru:'мать',gen:'f',decl:'5'},
+        {lv:'nakts',ru:'ночь',gen:'f',decl:'6'},
+      ];
+      await saveWords(words);
+    }
+    render();
+  })();
+
+  // ---- register service worker for offline / installable app ----
+  if('serviceWorker' in navigator){
+    window.addEventListener('load',()=>{
+      navigator.serviceWorker.register('service-worker.js').catch(()=>{});
+    });
+  }
+</script>
+</body>
+</html>
